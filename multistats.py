@@ -27,9 +27,7 @@ def getstats(X, varname):
     outliers: List with the outlier values.
     ndf: Pandas Dataframe object with trhe statistic values calculated.
     '''
-    
     plt.style.use('seaborn-whitegrid')
-    %matplotlib inline
 
     f, (ax_box, ax_hist) = plt.subplots(
         2,
@@ -52,6 +50,10 @@ def getstats(X, varname):
     ndf['kurtosis'] = round(stats.kurtosis(X), 2)
     ndf['skewness'] = round(stats.skew(X), 2)
     ndf['# outliers'] = len(outliers)
+    
+    sdf = pd.DataFrame(data=None, columns = ['variable', 'value'])
+    sdf['variable'] = list(ndf.keys())
+    sdf['value'] = list(ndf.values())
 
     sns.boxplot(X, ax = ax_box)
     ax_box.axvline(ndf['mean'], color = 'r', linestyle = '--')
@@ -61,14 +63,14 @@ def getstats(X, varname):
     ax_hist.axvline(ndf['mean'], color = 'r', linestyle = '--')
     ax_hist.axvline(ndf['median'], color = 'g', linestyle = '-')
 
-    plt.legend({'Media':mean,'Mediana':median})
+    plt.legend({'Media':ndf['mean'],'Mediana':ndf['median']})
     ax_hist.set(xlabel=varname)
+    
+    sl = []
+    for fil in sdf.index:
+        sl += ['{var}: {val:,.2f}'.format(var = sdf.loc[fil,'variable'], val = sdf.loc[fil,'value'])]
 
-    textstr = str(pd.DataFrame(
-        ndf.values(),
-        index=ndf.keys(),
-        columns=[varname]
-    ))
+    textstr = '\n'.join(sl)
 
     props = dict(boxstyle='round', facecolor='#eafff5', alpha=0.5)
 
@@ -84,5 +86,4 @@ def getstats(X, varname):
 
     plt.show()
 
-    print('Outliers:', outliers)
     return(outliers, ndf)
