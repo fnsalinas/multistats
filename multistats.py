@@ -6,33 +6,46 @@ Created on Fri Apr 10 20:46:55 2020
 email: fabio.salinas1982@gmail.com
 """
 
-from matplotlib import pyplot as plt
-from matplotlib.cbook import boxplot_stats
-import pandas as pd
-import seaborn as sns
-import numpy as np
-from scipy import stats
-
-def getstats(X, varname):
+def getstats(X, varname, graphtitle = '', fontsize = 30, figsize = (17,7)):
     '''
-    The function need two varibles: X and varname
+    Plot a histogram, a density plot and a boxplot for a numeric variable
     
     Parameters
     ----------
     X : LIST with numeric values
     varname : STRING with the name of the variable
+    graphtitle : Chart title
+    fontsize : Size for the text chart title
+    figsize : Size for the complete chart
     
     Returns two objects: outliers, ndf
     -------
     outliers: List with the outlier values.
-    ndf: Pandas Dataframe object with trhe statistic values calculated.
-    '''
-    plt.style.use('seaborn-whitegrid')
+    ndf: Dictionary with trhe statistic values calculated.
+    f: the figure of the chart
+    
+    Use examples:
+    X1 = [1,5,3,74,52,8,2,8,2,85,2,5,5,2,2,16,185,62,2]
+    X2 = [1,2,3,4,5,6,1,2,3,4,5,6]
+    varname1 = 'test1'
+    varname2 = 'test2'
 
+    o1, s1, g1 = getstats(X1, varname1, graphtitle = 'Chart No 1', fontsize = 20, figsize = (10,5))
+    o2, s2, g2 = getstats(X2, varname2, graphtitle = 'Second Chart', fontsize = 30, figsize = (17,7))
+    '''
+    from matplotlib import pyplot as plt
+    from matplotlib.cbook import boxplot_stats
+    import pandas as pd
+    import seaborn as sns
+    import numpy as np
+    from scipy import stats
+    plt.style.use('seaborn-whitegrid')
+    # sns.set_palette("deep", desat=.6)
+    
     f, (ax_box, ax_hist) = plt.subplots(
         2,
         sharex = True,
-        figsize = (17, 7),
+        figsize = figsize if figsize[1] > 5 else (figsize[0], 6),
         gridspec_kw = {"height_ratios": (0.2, 1)}
     )
     
@@ -55,7 +68,7 @@ def getstats(X, varname):
     sdf['variable'] = list(ndf.keys())
     sdf['value'] = list(ndf.values())
 
-    sns.boxplot(X, ax = ax_box)
+    sns.boxplot(X, ax = ax_box).set_title(graphtitle, fontsize = fontsize)
     ax_box.axvline(ndf['mean'], color = 'r', linestyle = '--')
     ax_box.axvline(ndf['median'], color = 'g', linestyle = '-')
 
@@ -84,6 +97,42 @@ def getstats(X, varname):
         bbox = props
     )
 
-    plt.show()
+    return(outliers, ndf, f)
 
-    return(outliers, ndf)
+def scatterMtx(df, figsize = (17,10), fontsize = 20):
+    '''
+    Parameters
+    ----------
+    df : Pandas Data Frame with numeric values on each column
+    figsize : Tuple wuith the size for the complete chart
+        The default is (17,10).
+    fontsize : Size for the text chart title
+        The default is 20.
+
+    Returns
+    -------
+    plt: Chart
+    corr: Pandas dataframe with the correlation for each combination of variables.
+    '''
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    axes = pd.plotting.scatter_matrix(
+        df, 
+        figsize = figsize if figsize[1] > 5 else (figsize[0], 6),
+        diagonal = 'hist', 
+        marker = 'o', 
+        grid = True, 
+        range_padding=0.05
+        )
+    corr = df.corr()
+    for i, j in zip(*plt.np.triu_indices_from(axes, k=1)):
+        axes[i, j].annotate(
+            "%.3f" %corr.iloc[i,j], 
+            (0.8, 0.8), 
+            xycoords='axes fraction', 
+            ha='center', 
+            va='center', 
+            size=fontsize)
+    plt.title()
+    plt.show()
+    return(plt, corr)
